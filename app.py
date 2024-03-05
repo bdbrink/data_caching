@@ -6,23 +6,23 @@ app = Flask(__name__)
 cache = redis.StrictRedis(host="localhost", port=6379, decode_responses=True)
 
 
-@app.route('/')
+@app.route("/")
 def home():
     # Using the Chinook database for sample data
-    connection = sqlite3.connect('chinook.db')
+    connection = sqlite3.connect("chinook.db")
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM albums')
+    cursor.execute("SELECT * FROM albums")
     data = cursor.fetchall()
     connection.close()
 
     # Using Redis as a cache
-    cached_data = cache.get('cached_data')
+    cached_data = cache.get("cached_data")
     if not cached_data:
         # If data not found in cache, store it and set the cache expiration time
-        cache.set('cached_data', str(data), ex=60)
+        cache.set("cached_data", str(data), ex=60)
         cached_data = str(data)
 
-    return render_template('index.html', data=data, cached_data=cached_data)
+    return render_template("index.html", data=data, cached_data=cached_data)
 
 
 if __name__ == "__main__":
