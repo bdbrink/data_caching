@@ -3,14 +3,15 @@ import sqlite3
 import redis
 
 app = Flask(__name__)
-cache = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
+cache = redis.StrictRedis(host="localhost", port=6379, decode_responses=True)
+
 
 @app.route('/')
 def home():
-    # Simulating data retrieval from SQLite
-    connection = sqlite3.connect('database.db')
+    # Using the Chinook database for sample data
+    connection = sqlite3.connect('chinook.db')
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM sample_table')
+    cursor.execute('SELECT * FROM albums')
     data = cursor.fetchall()
     connection.close()
 
@@ -23,5 +24,6 @@ def home():
 
     return render_template('index.html', data=data, cached_data=cached_data)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)
