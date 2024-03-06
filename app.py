@@ -1,29 +1,59 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import sqlite3
 import redis
 
 app = Flask(__name__)
-cache = redis.StrictRedis(host="localhost", port=6379, decode_responses=True)
+app.config['SECRET_KEY'] = 'secret_key'
+socketio = SocketIO(app)
+login_manager = LoginManager(app)
+cache = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
 
+# Simulate a user database for demonstration purposes
+class User(UserMixin):
+    def __init__(self, user_id):
+        self.id = user_id
 
-@app.route("/")
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
+
+@app.route('/')
+@login_required
 def home():
-    # Using the Chinook database for sample data
-    connection = sqlite3.connect("chinook.db")
+    connection = sqlite3.connect('chinook.db')
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM albums")
+    cursor.execute('SELECT * FROM albums')
     data = cursor.fetchall()
     connection.close()
 
     # Using Redis as a cache
-    cached_data = cache.get("cached_data")
+    cached_data = cache.get('cached_data')
     if not cached_data:
-        # If data not found in cache, store it and set the cache expiration time
-        cache.set("cached_data", str(data), ex=60)
+        cache.set('cached_data', str(data), ex=60)
         cached_data = str(data)
 
-    return render_template("index.html", data=data, cached_data=cached_data)
+    return render_template('index.html', data=data, cached_data=cached_data)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        user = User(user_id)
+        login_user(user)
+        return redirect(request.args.get('next') or '/')
+    return render_template('login.html')
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
+
+@socketio.on('message')
+def handle_message(msg):
+    socketio.emit('message', msg)
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
