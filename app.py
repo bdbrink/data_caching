@@ -51,6 +51,23 @@ def logout():
     logout_user()
     return redirect('/')
 
+@app.route('/visualization')
+@login_required
+def visualization():
+    connection = sqlite3.connect('chinook.db')
+
+    # Sample data for visualization
+    cursor = connection.cursor()
+    cursor.execute('SELECT genres.Name, COUNT(tracks.TrackId) AS TrackCount FROM genres JOIN tracks ON genres.GenreId = tracks.GenreId GROUP BY genres.Name')
+    data = cursor.fetchall()
+    connection.close()
+
+    # Create a bar chart using Plotly
+    fig = px.bar(data, x='Name', y='TrackCount', title='Track Count by Genre')
+    graph_json = fig.to_json()
+
+    return render_template('visualization.html', graph_json=graph_json)
+
 @socketio.on('message')
 def handle_message(msg):
     socketio.emit('message', msg)
