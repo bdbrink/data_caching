@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Data Visualization</h1>
+    <div id="chart"></div>
+
+    <script>
+        // Parse the JSON data received from the server
+        var graphData = {{ graph_json | tojson | safe }};
+
+        // Create the chart using Plotly
+        Plotly.newPlot('chart', JSON.parse(graphData));
+    </script>
+</body>
+</html>
