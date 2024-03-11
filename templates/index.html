@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flask Redis Project</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('message', function(msg) {
+            alert('Real-time update: ' + msg);
+        });
+    </script>
 </head>
 <body>
     <h1>Hello, Bestie!</h1>
@@ -11,5 +19,24 @@
     <p>{{ data }}</p>
     <h2>Cached Data from Redis:</h2>
     <p>{{ cached_data }}</p>
+    {% if current_user.is_authenticated %}
+        <p>Logged in as user {{ current_user.id }}</p>
+        <a href="/logout">Logout</a>
+    {% else %}
+        <a href="/login">Login</a>
+    {% endif %}
+    <form onsubmit="sendMessage(); return false;">
+        <input type="text" id="message_input" placeholder="Type a message">
+        <button type="submit">Send</button>
+    </form>
+    <a href="/visualization">Data Visualization</a>
 </body>
+<script>
+    function sendMessage() {
+        var messageInput = document.getElementById('message_input');
+        var message = messageInput.value;
+        socket.emit('message', message);
+        messageInput.value = '';
+    }
+</script>
 </html>
