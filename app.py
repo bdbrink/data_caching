@@ -52,7 +52,6 @@ def logout():
     return redirect('/')
 
 @app.route('/visualization')
-@login_required
 def visualization():
     connection = sqlite3.connect('chinook.db')
 
